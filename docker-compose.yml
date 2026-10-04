@@ -1,0 +1,4 @@
+# Default compose file linking to local stack
+# Enables running `docker compose up -d` directly from root
+include:
+  - path: docker-compose.local.yml

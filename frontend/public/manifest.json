@@ -1,0 +1,16 @@
+{
+  "short_name": "RAG",
+  "name": "RAG — Vos documents, en conversation",
+  "icons": [
+    {
+      "src": "aitheris-logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#10243e",
+  "background_color": "#f5f7fb"
+}

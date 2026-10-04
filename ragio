@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Convenience command for the complete local Docker stack.
+set -euo pipefail
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="$PROJECT_DIR/docker-compose.local.yml"
+ENV_FILE="$PROJECT_DIR/.env.local"
+ENV_TEMPLATE="$PROJECT_DIR/.env.local.example"
+
+compose() {
+  docker compose --project-name ragio-local --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+value_from_env() {
+  local key="$1"
+  local fallback="$2"
+  local value
+  value="$(sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1)"
+  printf '%s' "${value:-$fallback}"
+}
+
+ensure_prerequisites() {
+  if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+    echo "Docker Engine with Docker Compose v2 is required."
+    exit 1
+  fi
+  if ! docker info >/dev/null 2>&1; then
+    echo "Docker is installed but its daemon is not available. Start Docker and try again."
+    exit 1
+  fi
+  if [[ ! -f "$ENV_FILE" ]]; then
+    cp "$ENV_TEMPLATE" "$ENV_FILE"
+    echo "Created .env.local with local development defaults."
+  fi
+}
+
+print_urls() {
+  local http_port api_port minio_port minio_console_port flower_port
+  http_port="$(value_from_env HTTP_PORT 3000)"
+  api_port="$(value_from_env API_PORT 8080)"
+  minio_port="$(value_from_env MINIO_PORT 9000)"
+  minio_console_port="$(value_from_env MINIO_CONSOLE_PORT 9001)"
+  flower_port="$(value_from_env FLOWER_PORT 5555)"
+  cat <<EOF
+
+RAG is running:
+  App:           http://localhost:${http_port}
+  API docs:      http://localhost:${api_port}/docs
+  MinIO console: http://localhost:${minio_console_port}
+  MinIO API:     http://localhost:${minio_port}
+  Flower:        http://localhost:${flower_port}
+
+Set MISTRAL_API_KEY in .env.local and run ./ragio start --no-build to enable AI chat answers.
+EOF
+}
+
+usage() {
+  cat <<'EOF'
+Usage: ./ragio <command>
+
+Commands:
+  start [--no-build]  Build (unless --no-build) and start every component
+  stop                Stop containers but keep their data
+  restart             Restart the running stack
+  status              Show component status
+  logs [service]      Follow all logs, or one service's logs
+  down                Remove containers and network but keep Docker volumes
+
+Examples:
+  ./ragio start
+  ./ragio logs backend
+  ./ragio stop
+EOF
+}
+
+case "${1:-}" in
+  start)
+    ensure_prerequisites
+    if [[ "${2:-}" == "--no-build" ]]; then
+      compose up --detach
+    elif [[ -n "${2:-}" ]]; then
+      usage
+      exit 1
+    else
+      compose up --detach --build
+    fi
+    compose ps
+    print_urls
+    ;;
+  stop)
+    ensure_prerequisites
+    compose stop
+    ;;
+  restart)
+    ensure_prerequisites
+    compose restart
+    compose ps
+    print_urls
+    ;;
+  status)
+    ensure_prerequisites
+    compose ps
+    ;;
+  logs)
+    ensure_prerequisites
+    if [[ -n "${2:-}" ]]; then
+      compose logs --follow "$2"
+    else
+      compose logs --follow
+    fi
+    ;;
+  down)
+    ensure_prerequisites
+    compose down
+    ;;
+  -h|--help|help|"")
+    usage
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
