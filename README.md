@@ -6,7 +6,7 @@
 
 ### Système d'Intelligence Documentaire & Moteur RAG Agentique d'Entreprise
 
-Une plateforme complète et modulaire de Retrieval-Augmented Generation (RAG) combinant ingestion asynchrone distribuée, recherche hybride (dense + sparse), reclassement cross-encoder, passerelle multi-LLM (Cloud & Ollama local) et orchestration agentique via LangGraph.
+Une plateforme complète et modulaire de Retrieval-Augmented Generation (RAG) combinant ingestion asynchrone distribuée, recherche hybride (dense + sparse), reclassement cross-encoder, passerelle multi-LLM cloud & on-premise, gouvernance d'entreprise et observabilité complète.
 
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-REST-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -17,7 +17,7 @@ Une plateforme complète et modulaire de Retrieval-Augmented Generation (RAG) co
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15_pgvector-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 
-[Architecture](#architecture-du-système) · [Cycle de Vie & Ingestion](#cycle-de-vie-dun-document--traitement-asynchrone) · [Pipeline RAG Hybride](#pipeline-rag-hybride--agentique) · [Passerelle Multi-LLM](#passerelle-multi-llm--moteur-de-skills) · [Démarrage Rapide](#guide-de-démarrage-rapide) · [API REST](#points-daccès-api-principaux) · [Auteur](#-concepteur--architecte)
+[Architecture](#architecture-du-système) · [Cycle de Vie & Ingestion](#cycle-de-vie-dun-document--traitement-asynchrone) · [Pipeline RAG Hybride](#pipeline-rag-hybride--agentique) · [Passerelle LLM](#passerelle-multi-llm--moteur-de-skills) · [Sécurité](#sécurité--guardrails-nemo--presidio) · [Démarrage Rapide](#-guide-de-démarrage-rapide)
 
 </div>
 
@@ -25,15 +25,15 @@ Une plateforme complète et modulaire de Retrieval-Augmented Generation (RAG) co
 
 ## 🌟 Présentation Générale
 
-**AITHERIS RAG** est une solution logicielle d'intelligence documentaire conçue pour les environnements professionnels exigeants. Elle permet de transformer de vastes corpus documentaires hétérogènes (PDF volumineux, rapports, contrats, fichiers CSV, Markdown, textes) en bases de connaissances vectorielles immédiatement exploitables par des modèles de langage avancés.
+**AITHERIS RAG** est une solution logicielle d'intelligence documentaire conçue pour les environnements professionnels exigeants. Elle permet de transformer de vastes corpus documentaires hétérogènes (PDF, docx, images OCR, etc.) en une base de connaissance interrogeable en langage naturel, avec traçabilité complète des sources.
 
 ### Piliers Fondamentaux de la Plateforme :
-- **Ingestion Asynchrone & Haute Résilience** : Découplage complet entre l'API web et les tâches de traitement lourd via **Celery**, **Redis** et **IBM Docling** / **PyMuPDF**, garantissant une fluidité totale même lors de l'import de documents de plus de 200 pages.
-- **Précision Vectorielle de Pointe** : Utilisation du modèle multilingue **BAAI/bge-m3** (1024 dimensions) couplé à une recherche lexicale **BM25** (recherche hybride) et un reclassement systématique par **BAAI/bge-reranker-v2-m3**.
-- **Passerelle Multi-LLM (Cloud & On-Premise)** : Intégration transparente de modèles hébergés localement via **Ollama** (Llama 3, Mistral, DeepSeek) et de fournisseurs Cloud majeurs (Mistral AI, OpenAI, Anthropic Claude, Google Gemini, Groq) avec gestion dynamique des clés depuis l'interface d'administration.
-- **RAG Agentique & Contrôlé (LangGraph)** : Workflow d'analyse multi-étapes assurant la vérification sémantique des citations, la détection des hallucinations, la gestion de checkpoints PostgreSQL pour reprise sur incident et la validation humaine optionnelle (Human-in-the-loop).
-- **Moteur de Compétences Spécialisées (Skills)** : Système dynamique de prompts experts (`.md`) sélectionnables en temps réel dans le chat général (analyse juridique, synthèse technique, audit de sécurité, etc.).
-- **Sécurité & Gouvernance d'Entreprise** : Authentification JWT (access + refresh tokens), gestion collaborative de projets multi-utilisateurs avec contrôle d'accès RBAC (Propriétaire, Administrateur, Contributeur, Lecteur) et quotas par utilisateur.
+- **Ingestion Asynchrone & Haute Résilience** : Découplage complet entre l'API web et les tâches de traitement lourd via **Celery**, **Redis** et **IBM Docling** / **PyMuPDF**, garantissant une latence zéro pour l'utilisateur final et une scalabilité quasi-illimitée.
+- **Précision Vectorielle de Pointe** : Utilisation du modèle multilingue **BAAI/bge-m3** (1024 dimensions) couplé à une recherche lexicale **BM25** (recherche hybride) et un reclassement systématique par **cross-encoder** pour des résultats ultra-pertinents.
+- **Passerelle Multi-LLM (Cloud & On-Premise)** : Intégration transparente de modèles hébergés localement via **Ollama** (Llama 3, Mistral, DeepSeek) et de fournisseurs Cloud majeurs (Mistral AI, OpenAI, Anthropic, Google Gemini, Groq).
+- **RAG Agentique & Contrôlé (LangGraph)** : Workflow d'analyse multi-étapes assurant la vérification sémantique des citations, la détection des hallucinations, la gestion de checkpoints PostgreSQL et la persévérance jusqu'à 2 itérations de correction.
+- **Moteur de Compétences Spécialisées (Skills)** : Système dynamique de prompts experts (`.md`) sélectionnables en temps réel dans le chat général (analyse juridique, synthèse technique, audit de conformité, etc.).
+- **Sécurité & Gouvernance d'Entreprise** : Authentification JWT (access + refresh tokens), gestion collaborative de projets multi-utilisateurs avec contrôle d'accès RBAC (Propriétaire, Administrateur, Contributeur, Lecteur), anonymisation PII via Presidio et détection de jailbreaks via NeMo Guardrails.
 
 ---
 
@@ -69,7 +69,7 @@ L'architecture d'AITHERIS RAG repose sur une suite de microservices conteneuris�
 
 ## 🔄 Cycle de Vie d'un Document & Traitement Asynchrone
 
-L'ingestion documentaire suit un protocole asynchrone non-bloquant en quatre phases majeures. Cela garantit que le serveur web ne subit aucun ralentissement pendant que des calculs intensifs (OCR, vectorisation par lots) sont exécutés sur les workers.
+L'ingestion documentaire suit un protocole asynchrone non-bloquant en quatre phases majeures. Cela garantit que le serveur web ne subit aucun ralentissement pendant que des calculs intensifs (OCR, vectorisation, embedding) se déroulent en arrière-plan sur les workers Celery.
 
 ### Diagramme de Séquence : Cycle de Vie d'un Document
 
@@ -95,7 +95,7 @@ Le client web interroge le backend toutes les 3 secondes pour afficher la progre
 
 ## 🧠 Pipeline RAG Hybride & Agentique
 
-AITHERIS RAG intègre une chaîne de récupération en deux passes suivie d'une vérification agentique pilotée par **LangGraph** pour garantir des réponses exactes, sourcées et sans hallucination.
+AITHERIS RAG intègre une chaîne de récupération en deux passes suivie d'une vérification agentique pilotée par **LangGraph** pour garantir des réponses exactes, sourcées et sans hallucinations.
 
 ### Pipeline RAG Complet (Question / Chat)
 
@@ -125,7 +125,7 @@ AITHERIS RAG intègre une chaîne de récupération en deux passes suivie d'une 
 ## 🔌 Passerelle Multi-LLM & Moteur de Skills
 
 ### 1. Passerelle Dynamique LLM (Cloud & Ollama)
-Le module `app.services.llm_gateway` abstrait les interactions avec les fournisseurs de modèles. La configuration s'effectue dynamiquement depuis l'interface d'administration `/admin/llm` sans redémarrer les conteneurs.
+Le module `app.services.llm_gateway` abstrait les interactions avec les fournisseurs de modèles. La configuration s'effectue dynamiquement depuis l'interface d'administration `/admin/llm` sans redémarrage.
 
 - **Ollama (Local / Souverain)** : Exécution de modèles open-source en local (`llama3:latest`, `mistral:latest`, `deepseek-r1:latest`).
 - **Fournisseurs Cloud** : Support natif de Mistral AI, OpenAI (GPT-4o, GPT-3.5), Anthropic Claude, Google Gemini et Groq.
@@ -144,7 +144,7 @@ Les compétences sont des modules d'expertise stockés sous format Markdown dans
 AITHERIS RAG intègre une double ligne de défense pour garantir la confidentialité et la robustesse du système face aux attaques :
 
 ### 1. Microsoft Presidio (Anonymisation PII / DLP)
-- **Détection automatique** des données sensibles dans les requêtes utilisateur (adresses email, numéros de téléphone, numéros de carte bancaire, codes IBAN, numéros de sécurité sociale français NIR, adresses IP).
+- **Détection automatique** des données sensibles dans les requêtes utilisateur (adresses email, numéros de téléphone, numéros de carte bancaire, codes IBAN, numéros de sécurité sociale, etc.).
 - **Anonymisation réversible** : Les données sensibles sont remplacées par des jetons typés (ex: `<EMAIL_ADDRESS_1>`) avant toute transmission aux modèles de langage tiers (garantie de conformité RGPD).
 - **Dé-anonymisation sécurisée** : Les valeurs originales sont restituées en sortie pour l'utilisateur final autorisé.
 
@@ -167,7 +167,7 @@ La plateforme intègre une suite d'observabilité de niveau entreprise :
    - *Violations de sécurité interceptées & entités PII masquées*.
    - *Volume de tokens LLM consommés (Input / Output)*.
    - *État et débit des tâches d'ingestion Celery*.
-3. **Langfuse (`:3002`)** : Plateforme dédiée au traçage distribué des LLM. Visualisation de chaque prompt, des passages de contexte extraits, des scores de re-ranking, des évaluations de fidélité et des coûts en temps réel.
+3. **Langfuse (`:3002`)** : Plateforme dédiée au traçage distribué des LLM. Visualisation de chaque prompt, des passages de contexte extraits, des scores de re-ranking, des évaluations de fidélité et du coût total des jetons.
 
 ---
 
@@ -261,7 +261,7 @@ chmod +x ./ragio
 docker compose -p ragio --env-file .env.local -f docker-compose.local.yml up -d --build
 ```
 
-> **Note d'initialisation** : Au premier lancement, le conteneur `model_init` télécharge automatiquement les modèles `BAAI/bge-m3` et `BAAI/bge-reranker-v2-m3` dans un volume partagé sécurisé. Les conteneurs `backend` et `celery_worker` attendent la fin de cette étape pour démarrer.
+> **Note d'initialisation** : Au premier lancement, le conteneur `model_init` télécharge automatiquement les modèles `BAAI/bge-m3` et `BAAI/bge-reranker-v2-m3` dans un volume partagé sécurisé. Cette étape peut prendre 5-10 minutes en fonction de votre bande passante réseau.
 
 ### 3. Accès aux Services
 
@@ -333,6 +333,3 @@ Conception, architecture technique et développement complet de la plateforme **
 
 ## 📄 Licence
 Ce projet est distribué sous licence MIT. Consultez le fichier `LICENSE` pour plus de détails.
-
-#   A i t h e r i s R A G  
- 
